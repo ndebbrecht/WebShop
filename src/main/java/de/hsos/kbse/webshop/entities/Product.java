@@ -6,10 +6,13 @@
 package de.hsos.kbse.webshop.entities;
 
 import java.io.Serializable;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  *
@@ -22,10 +25,18 @@ public class Product implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @JsonbProperty("name")
     private String name;
+    @ManyToOne
+    @JsonbTransient
     private Category category;
+    @JsonbProperty("price")
     private double price;
+    @JsonbProperty("description")
     private String description;
+    
+    public Product(){
+    }
 
     public Product(
             String name, 

@@ -7,6 +7,8 @@ package de.hsos.kbse.webshop.entities;
 
 import java.io.Serializable;
 import java.util.Collection;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -25,14 +27,23 @@ public class Customer implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     
+    @JsonbProperty("firstname")
     private String firstname;
+    @JsonbProperty("lastname")
     private String lastname;
+    @JsonbProperty("email")
     private String email;
+    @JsonbProperty("password")
     private String password;
+    @JsonbProperty("street")
     private String street;
+    @JsonbProperty("postalCode")
     private String postalCode;
+    @JsonbProperty("city")
     private String city;
+    @JsonbProperty("country")
     private String country;
+    @JsonbProperty("isAdmin")
     private boolean isAdmin;
     @OneToMany
     private Collection<Cart> carts;

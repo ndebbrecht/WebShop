@@ -7,6 +7,9 @@ package de.hsos.kbse.webshop.entities;
 
 import java.io.Serializable;
 import java.util.Collection;
+import javax.enterprise.context.Dependent;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,9 +27,14 @@ public class Category implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @JsonbProperty("name")
     private String name;
     @OneToMany
+    @JsonbTransient
     private Collection<Product> products;
+
+    public Category() {
+    }
 
     public Category(String name) {
         this.name = name;

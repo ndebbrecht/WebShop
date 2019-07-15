@@ -7,6 +7,8 @@ package de.hsos.kbse.webshop.entities;
 
 import java.io.Serializable;
 import java.util.Collection;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,10 +28,16 @@ public class Cart implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne
+    //@JsonbTransient
     private Customer customer;
     @OneToMany
+    @JsonbProperty("ortderItems")
     private Collection<OrderItem> orderItems;
+    @JsonbProperty("status")
     private int status;
+    
+    public Cart(){
+    }
 
     public Customer getCustomer() {
         return customer;
@@ -45,6 +53,14 @@ public class Cart implements Serializable {
 
     public void setOrderItems(Collection<OrderItem> orderItems) {
         this.orderItems = orderItems;
+    }
+    
+    public void addOrderItem(OrderItem orderItem){
+        this.orderItems.add(orderItem);
+    }
+    
+    public void removeOrderItem(OrderItem orderItem){
+        this.orderItems.remove(orderItem);
     }
 
     public int getStatus() {

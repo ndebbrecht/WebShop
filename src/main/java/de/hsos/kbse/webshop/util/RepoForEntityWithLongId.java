@@ -15,15 +15,16 @@ import javax.transaction.Transactional;
  * @author niklas_debbrecht
  */
 public abstract class RepoForEntityWithLongId<T extends Serializable> implements Serializable {
-    @PersistenceContext(unitName="PizzaPU")
+    @PersistenceContext(unitName="WebShopPU")
     protected EntityManager em;
     protected Class<?> type;
     
     public void persist(T entity){
         em.persist(entity);
+        em.flush();
     }
     
-    public T findById(int id){
+    public T findById(Long id){
         return (T)em.find(this.type, id);
     }
     

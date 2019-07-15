@@ -6,6 +6,8 @@
 package de.hsos.kbse.webshop.entities;
 
 import java.io.Serializable;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,8 +26,13 @@ public class OrderItem implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne
+    @JsonbProperty("product")
     private Product product;
+    @JsonbProperty("amount")
     private int amount;
+    
+    public OrderItem(){
+    }
 
     public OrderItem(Product product, int amount) {
         this.product = product;
