@@ -7,15 +7,16 @@ package de.hsos.kbse.webshop.rest;
 
 import de.hsos.kbse.webshop.entities.Customer;
 import de.hsos.kbse.webshop.repositories.CustomerRepository;
-import de.hsos.kbse.webshop.util.JsonbFactory;
+import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
-import java.util.Collection;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -36,20 +37,26 @@ public class CustomerResource implements Serializable {
     @Inject
     private CustomerRepository customerRepo;
     @Inject
+    private UserManager userManager;
+    @Inject
     private Jsonb jsonb;
     @Context
     UriInfo uriinfo;
     
     @GET
-    public Response getCustomers(){
-        return Response.ok(jsonb.toJson(customerRepo.findAll())).build();
+    public Response getCustomers(@FormParam("email")String email, @FormParam("password")String password){
+        if(userManager.isAdmin(email, password)){
+            return Response.ok(jsonb.toJson(customerRepo.findAll())).build();
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
     }
     
     @GET
-    @Path("{id}")
-    public Response getCustomer(@PathParam("id")Long id){
+    @Path("my")
+    public Response getCustomer(@FormParam("email")String email, @FormParam("password")String password){
         try {
-            Customer c = customerRepo.findById(id);
+            Customer c = userManager.getValidCustomer(email, password);
             return Response.ok(jsonb.toJson(c)).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -82,5 +89,31 @@ public class CustomerResource implements Serializable {
         customerRepo.persist(c);
         
         return Response.ok(jsonb.toJson(c)).build();
+    }
+    
+    @PUT
+    @Path("promote/{id}")
+    public Response promote(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+        if(userManager.isAdmin(email, password)){
+            Customer c = customerRepo.findById(id);
+            c.setIsAdmin(true);
+            customerRepo.merge(c);
+            return Response.ok(jsonb.toJson(c)).build();
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+    }
+    
+    @PUT
+    @Path("demote/{id}")
+    public Response demote(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+        if(userManager.isAdmin(email, password)){
+            Customer c = customerRepo.findById(id);
+            c.setIsAdmin(false);
+            customerRepo.merge(c);
+            return Response.ok(jsonb.toJson(c)).build();
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
     }
 }

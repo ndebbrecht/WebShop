@@ -9,20 +9,19 @@ import de.hsos.kbse.webshop.entities.Category;
 import de.hsos.kbse.webshop.entities.Product;
 import de.hsos.kbse.webshop.repositories.CategoryRepository;
 import de.hsos.kbse.webshop.repositories.ProductRepository;
+import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
@@ -35,14 +34,16 @@ import javax.ws.rs.core.UriInfo;
 @RequestScoped
 @Path("products")
 @Produces({MediaType.APPLICATION_JSON})
-@Consumes({MediaType.APPLICATION_JSON})
+//@Consumes({MediaType.APPLICATION_JSON})
 public class ProductResource implements Serializable {
     @Inject
     private ProductRepository productRepo;
     @Inject
     private CategoryRepository categoryRepo;
     @Inject
-    private Jsonb jsonb;// = JsonbBuilder.create();
+    private Jsonb jsonb;
+    @Inject
+    private UserManager userManager;
     @Context
     UriInfo uriInfo;
     
@@ -98,9 +99,13 @@ public class ProductResource implements Serializable {
             @PathParam("name")String name,
             @PathParam("price")double price,
             @PathParam("description")String description,
-            @PathParam("categoryId")Long categoryId
+            @PathParam("categoryId")Long categoryId,
+            @FormParam("email")String email,
+            @FormParam("password")String password
             ){
-        System.out.println(name+price+description+categoryId);
+        if(!userManager.isAdmin(email, password)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         Product p = new Product();
         p.setName(name);
         p.setPrice(price);
@@ -113,7 +118,10 @@ public class ProductResource implements Serializable {
     
     @POST
     @Path("newCategory/{name}")
-    public Response addCategory(@PathParam("name")String name){
+    public Response addCategory(@PathParam("name")String name, @FormParam("email")String email, @FormParam("password")String password){
+        if(!userManager.isAdmin(email, password)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         Category c = new Category();
         c.setName(name);
         categoryRepo.persist(c);

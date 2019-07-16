@@ -13,12 +13,13 @@ import de.hsos.kbse.webshop.repositories.CartRepository;
 import de.hsos.kbse.webshop.repositories.CustomerRepository;
 import de.hsos.kbse.webshop.repositories.OrderItemRepository;
 import de.hsos.kbse.webshop.repositories.ProductRepository;
-import de.hsos.kbse.webshop.util.JsonbFactory;
+import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,10 +28,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.Collection;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 
 /**
  *
@@ -50,13 +49,18 @@ public class CartResource implements Serializable {
     @Inject
     private CustomerRepository customerRepo;
     @Inject
+    private UserManager userManager;
+    @Inject
     private Jsonb jsonb;
     @Context
     UriInfo uriInfo;
     
     @GET
     @Path("{id}")
-    public Response getCart(@PathParam("id")Long id){
+    public Response getCart(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+        if(!userManager.isYourCart(email, password, id)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         try {
             Cart cart = cartRepo.findById(id);
         
@@ -67,13 +71,20 @@ public class CartResource implements Serializable {
     }
     
     @GET
-    public Response getAllCarts(){
-        return Response.ok(jsonb.toJson(cartRepo.findAll())).build();
+    public Response getAllCarts(@FormParam("email")String email, @FormParam("password")String password){
+        if(userManager.isAdmin(email, password)){
+            return Response.ok(jsonb.toJson(cartRepo.findAll())).build();
+        } else {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
     }
     
     @POST
     @Path("{id}/add/{productId}/{amount}")
-    public Response addProduct(@PathParam("id")Long cartId, @PathParam("productId")Long productId, @PathParam("amount")int amount){
+    public Response addProduct(@PathParam("id")Long cartId, @PathParam("productId")Long productId, @PathParam("amount")int amount, @FormParam("email")String email, @FormParam("password")String password){
+        if(!userManager.isYourCart(email, password, cartId)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         try {
             Product p = productRepo.findById(productId);
             OrderItem oi = new OrderItem();
@@ -90,10 +101,10 @@ public class CartResource implements Serializable {
     }
     
     @POST
-    @Path("new/{id}")
-    public Response newCart(@PathParam("id")Long id){
+    @Path("new")
+    public Response newCart(@FormParam("email")String email, @FormParam("password")String password){
         try {
-            Customer c = customerRepo.findById(id);
+            Customer c = userManager.getValidCustomer(email, password);
             Cart cart = new Cart();
             cart.setCustomer(c);
             cart.setStatus(1);
@@ -101,18 +112,21 @@ public class CartResource implements Serializable {
         
             return Response.ok(jsonb.toJson(cart)).build();
         } catch (NullPointerException e){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
     }
     
     @PUT
     @Path("{id}/editAmount/{orderItemId}/{newAmount}")
-    public Response editAmount(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId, @PathParam("newAmount")int newAmount){
+    public Response editAmount(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId, @PathParam("newAmount")int newAmount, @FormParam("email")String email, @FormParam("password")String password){
+        if(!userManager.isYourCart(email, password, cartId)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         try {
             OrderItem oi = orderItemRepo.findById(orderItemId);
             oi.setAmount(newAmount);
             orderItemRepo.merge(oi);
-            3return Response.ok(jsonb.toJson(oi)).build();
+            return Response.ok(jsonb.toJson(oi)).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -120,7 +134,10 @@ public class CartResource implements Serializable {
     
     @PUT
     @Path("{id}/removeItem/{orderItemId}")
-    public Response removeOrderItem(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId){
+    public Response removeOrderItem(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId, @FormParam("email")String email, @FormParam("password")String password){
+        if(!userManager.isYourCart(email, password, cartId)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         try {
             Cart cart = cartRepo.findById(cartId);
             OrderItem oi = orderItemRepo.findById(orderItemId);
