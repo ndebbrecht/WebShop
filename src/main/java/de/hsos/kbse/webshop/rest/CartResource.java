@@ -19,6 +19,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 
 /**
  *
@@ -57,7 +59,7 @@ public class CartResource implements Serializable {
     
     @GET
     @Path("{id}")
-    public Response getCart(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+    public Response getCart(@PathParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
         if(!userManager.isYourCart(email, password, id)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -71,7 +73,7 @@ public class CartResource implements Serializable {
     }
     
     @GET
-    public Response getAllCarts(@FormParam("email")String email, @FormParam("password")String password){
+    public Response getAllCarts(@QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
             return Response.ok(jsonb.toJson(cartRepo.findAll())).build();
         } else {
@@ -80,8 +82,8 @@ public class CartResource implements Serializable {
     }
     
     @POST
-    @Path("{id}/add/{productId}/{amount}")
-    public Response addProduct(@PathParam("id")Long cartId, @PathParam("productId")Long productId, @PathParam("amount")int amount, @FormParam("email")String email, @FormParam("password")String password){
+    @Path("{id}/add")
+    public Response addProduct(@PathParam("id")Long cartId, @QueryParam("productId")Long productId, @QueryParam("amount")int amount, @FormParam("email")String email, @FormParam("password")String password){
         if(!userManager.isYourCart(email, password, cartId)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -102,7 +104,7 @@ public class CartResource implements Serializable {
     
     @POST
     @Path("new")
-    public Response newCart(@FormParam("email")String email, @FormParam("password")String password){
+    public Response newCart(@QueryParam("email")String email, @QueryParam("password")String password){
         try {
             Customer c = userManager.getValidCustomer(email, password);
             Cart cart = new Cart();
@@ -117,8 +119,8 @@ public class CartResource implements Serializable {
     }
     
     @PUT
-    @Path("{id}/editAmount/{orderItemId}/{newAmount}")
-    public Response editAmount(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId, @PathParam("newAmount")int newAmount, @FormParam("email")String email, @FormParam("password")String password){
+    @Path("{id}/editAmount")
+    public Response editAmount(@PathParam("id")Long cartId, @QueryParam("orderItemId")Long orderItemId, @QueryParam("newAmount")int newAmount, @FormParam("email")String email, @FormParam("password")String password){
         if(!userManager.isYourCart(email, password, cartId)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -132,9 +134,9 @@ public class CartResource implements Serializable {
         }
     }
     
-    @PUT
-    @Path("{id}/removeItem/{orderItemId}")
-    public Response removeOrderItem(@PathParam("id")Long cartId, @PathParam("orderItemId")Long orderItemId, @FormParam("email")String email, @FormParam("password")String password){
+    @DELETE
+    @Path("{id}/removeFromCart")
+    public Response removeOrderItem(@PathParam("id")Long cartId, @QueryParam("orderItemId")Long orderItemId, @QueryParam("email")String email, @QueryParam("password")String password){
         if(!userManager.isYourCart(email, password, cartId)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }

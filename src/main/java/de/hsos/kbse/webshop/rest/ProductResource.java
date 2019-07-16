@@ -22,6 +22,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
@@ -94,14 +95,14 @@ public class ProductResource implements Serializable {
     }
     
     @POST
-    @Path("new/{name}/{price}/{description}/{categoryId}")
+    @Path("new")
     public Response addProduct(
-            @PathParam("name")String name,
-            @PathParam("price")double price,
-            @PathParam("description")String description,
-            @PathParam("categoryId")Long categoryId,
-            @FormParam("email")String email,
-            @FormParam("password")String password
+            @QueryParam("name")String name,
+            @QueryParam("price")double price,
+            @QueryParam("description")String description,
+            @QueryParam("categoryId")Long categoryId,
+            @QueryParam("email")String email,
+            @QueryParam("password")String password
             ){
         if(!userManager.isAdmin(email, password)){
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -117,8 +118,8 @@ public class ProductResource implements Serializable {
     }
     
     @POST
-    @Path("newCategory/{name}")
-    public Response addCategory(@PathParam("name")String name, @FormParam("email")String email, @FormParam("password")String password){
+    @Path("newCategory")
+    public Response addCategory(@QueryParam("name")String name, @QueryParam("email")String email, @QueryParam("password")String password){
         if(!userManager.isAdmin(email, password)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }

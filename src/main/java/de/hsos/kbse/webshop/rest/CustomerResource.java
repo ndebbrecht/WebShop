@@ -20,6 +20,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -44,7 +45,7 @@ public class CustomerResource implements Serializable {
     UriInfo uriinfo;
     
     @GET
-    public Response getCustomers(@FormParam("email")String email, @FormParam("password")String password){
+    public Response getCustomers(@QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
             return Response.ok(jsonb.toJson(customerRepo.findAll())).build();
         } else {
@@ -54,9 +55,15 @@ public class CustomerResource implements Serializable {
     
     @GET
     @Path("my")
-    public Response getCustomer(@FormParam("email")String email, @FormParam("password")String password){
+    public Response getCustomer(@QueryParam("email")String email, @QueryParam("password")String password){
+        if(!userManager.isUser(email, password)){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         try {
             Customer c = userManager.getValidCustomer(email, password);
+            if(c == null){
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
             return Response.ok(jsonb.toJson(c)).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -64,16 +71,16 @@ public class CustomerResource implements Serializable {
     }
     
     @POST
-    @Path("new/{firstname}/{lastname}/{email}/{password}/{street}/{postalCode}/{city}/{country}")
+    @Path("new")
     public Response newCustomer(
-            @PathParam("firstname")String firstname,
-            @PathParam("lastname")String lastname,
-            @PathParam("email")String email,
-            @PathParam("password")String password,
-            @PathParam("street")String street,
-            @PathParam("postalCode")String postalCode,
-            @PathParam("city")String city,
-            @PathParam("country")String country
+            @QueryParam("firstname")String firstname,
+            @QueryParam("lastname")String lastname,
+            @QueryParam("email")String email,
+            @QueryParam("password")String password,
+            @QueryParam("street")String street,
+            @QueryParam("postalCode")String postalCode,
+            @QueryParam("city")String city,
+            @QueryParam("country")String country
     ){
         Customer c = new Customer();
         c.setFirstname(firstname);
