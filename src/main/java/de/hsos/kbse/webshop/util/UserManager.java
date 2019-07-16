@@ -9,14 +9,14 @@ import de.hsos.kbse.webshop.entities.Cart;
 import de.hsos.kbse.webshop.entities.Customer;
 import de.hsos.kbse.webshop.repositories.CustomerRepository;
 import java.util.Collection;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import org.jvnet.hk2.annotations.Service;
 
 /**
  *
  * @author niklas_debbrecht
  */
-@ApplicationScoped
+@Service
 public class UserManager {
     @Inject
     private CustomerRepository customerRepo;

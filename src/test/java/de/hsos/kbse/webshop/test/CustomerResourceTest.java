@@ -5,10 +5,7 @@
  */
 package de.hsos.kbse.webshop.test;
 
-import de.hsos.kbse.webshop.entities.Customer;
 import de.hsos.kbse.webshop.rest.CustomerResource;
-import javax.json.bind.JsonbBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -29,7 +26,7 @@ public class CustomerResourceTest extends JerseyTest {
 
     /*@Test
     public void createCustomerTest() {
-        Response response = target("customers/new/test1/test2/test@test.de/test123/teststr.1/12345/teststadt/DE").request().post(Entity.json(""));
+        Response response = target("customers/new").request().post(Entity.json("{'firstname':'test1','lastname':'test2','email':'test@test.de','password':'test123','street':'teststr.1','postalCode':'12345','city':'teststadt','country':'DE'}"));
         System.out.print(response.toString());
         Customer c = response.readEntity(Customer.class);
         Customer c2 = new Customer("test1","test2","test@test.de","test123","teststr.1","12345","teststadt","DE",false);
@@ -43,4 +40,15 @@ public class CustomerResourceTest extends JerseyTest {
         Assert.assertTrue(c.getCountry().equals(c2.getCountry()));
         Assert.assertTrue(c.isIsAdmin() == c2.isIsAdmin());
     }*/
+    
+    @Test
+    public void myCustomerTest(){
+        Response result = target("customers/my")
+                .queryParam("email", "admin@root.de")
+                .queryParam("password", "password123")
+                .request()
+                .get();
+        //Assert.assertTrue(c.isIsAdmin());
+        Assert.assertEquals("Status 200", 200, result.getStatus());
+    }
 }
