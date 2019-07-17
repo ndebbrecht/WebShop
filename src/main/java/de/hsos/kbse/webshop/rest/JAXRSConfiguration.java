@@ -21,13 +21,6 @@ public class JAXRSConfiguration extends Application {
         this.classes.add(de.hsos.kbse.webshop.rest.CustomerResource.class);
         this.classes.add(de.hsos.kbse.webshop.rest.CartResource.class);
         this.classes.add(de.hsos.kbse.webshop.rest.ProductResource.class);
-        register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                bindAsContract(UserManager.class);
-            }
-        });
-    }
     }
     
     @Override

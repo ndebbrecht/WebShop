@@ -5,7 +5,7 @@
  */
 package de.hsos.kbse.webshop.test;
 
-import de.hsos.kbse.webshop.rest.CustomerResource;
+import de.hsos.kbse.webshop.rest.JAXRSConfiguration;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -21,7 +21,7 @@ public class CustomerResourceTest extends JerseyTest {
     
     @Override
     protected Application configure() {
-        return new ResourceConfig(CustomerResource.class);
+        return new ResourceConfig(JAXRSConfiguration.class);
     }
 
     /*@Test
@@ -42,7 +42,7 @@ public class CustomerResourceTest extends JerseyTest {
     }*/
     
     @Test
-    public void myCustomerTest(){
+    public void getCustomerTest(){
         Response result = target("customers/my")
                 .queryParam("email", "admin@root.de")
                 .queryParam("password", "password123")
