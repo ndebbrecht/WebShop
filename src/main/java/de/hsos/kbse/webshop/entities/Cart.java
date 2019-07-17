@@ -31,7 +31,7 @@ public class Cart implements Serializable {
     //@JsonbTransient
     private Customer customer;
     @OneToMany
-    @JsonbProperty("ortderItems")
+    @JsonbProperty("orderItems")
     private Collection<OrderItem> orderItems;
     @JsonbProperty("status")
     private int status;

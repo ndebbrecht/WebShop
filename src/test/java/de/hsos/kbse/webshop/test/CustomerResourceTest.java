@@ -5,7 +5,7 @@
  */
 package de.hsos.kbse.webshop.test;
 
-import de.hsos.kbse.webshop.rest.JAXRSConfiguration;
+import de.hsos.kbse.webshop.rest.CustomerResource;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -21,7 +21,7 @@ public class CustomerResourceTest extends JerseyTest {
     
     @Override
     protected Application configure() {
-        return new ResourceConfig(JAXRSConfiguration.class);
+        return new ResourceConfig(CustomerResource.class);
     }
 
     /*@Test
