@@ -9,6 +9,7 @@ import de.hsos.kbse.webshop.entities.Customer;
 import de.hsos.kbse.webshop.repositories.CustomerRepository;
 import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
+import java.net.URI;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
@@ -22,6 +23,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -64,7 +66,12 @@ public class CustomerResource implements Serializable {
             if(c == null){
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            return Response.ok(jsonb.toJson(c)).build();
+            
+            // Create cart:
+            URI uriToNewCart = uriinfo.getBaseUriBuilder().path("/cart/new").build();
+            Link linkToNewCart = Link.fromUri(uriToNewCart).rel("collection").type("application/json").param("method", "GET").build();
+            
+            return Response.ok(jsonb.toJson(c)).links(linkToNewCart).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -95,30 +102,52 @@ public class CustomerResource implements Serializable {
         
         customerRepo.persist(c);
         
-        return Response.ok(jsonb.toJson(c)).build();
+        // View the customer:
+        URI uriToCustomer = uriinfo.getBaseUriBuilder().path("/customer/my").build();
+        Link linkToCustomer = Link.fromUri(uriToCustomer).rel("collection").type("application/json").param("method", "GET").build();
+        
+        return Response.ok(jsonb.toJson(c)).links(linkToCustomer).build();
     }
     
     @PUT
-    @Path("promote/{id}")
-    public Response promote(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+    @Path("promote")
+    public Response promote(@QueryParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
-            Customer c = customerRepo.findById(id);
-            c.setIsAdmin(true);
-            customerRepo.merge(c);
-            return Response.ok(jsonb.toJson(c)).build();
+            try {
+                Customer c = customerRepo.findById(id);
+                c.setIsAdmin(true);
+                customerRepo.merge(c);
+            } catch(NullPointerException e){
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            
+            // View the product:
+            URI uriToCustomers = uriinfo.getBaseUriBuilder().path(this.getClass()).build();
+            Link linkToCustomers = Link.fromUri(uriToCustomers).rel("collection").type("application/json").param("method", "GET").build(); 
+           
+            return Response.ok(jsonb.toJson(c)).links(linkToCustomers).build();
         } else {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
     }
     
     @PUT
-    @Path("demote/{id}")
-    public Response demote(@PathParam("id")Long id, @FormParam("email")String email, @FormParam("password")String password){
+    @Path("demote")
+    public Response demote(@QueryParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
-            Customer c = customerRepo.findById(id);
-            c.setIsAdmin(false);
-            customerRepo.merge(c);
-            return Response.ok(jsonb.toJson(c)).build();
+            try {
+                Customer c = customerRepo.findById(id);
+                c.setIsAdmin(false);
+                customerRepo.merge(c);
+            } catch(NullPointerException e){
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            
+            // View the product:
+            URI uriToCustomers = uriinfo.getBaseUriBuilder().path(this.getClass()).build();
+            Link linkToCustomers = Link.fromUri(uriToCustomers).rel("collection").type("application/json").param("method", "GET").build();
+            
+            return Response.ok(jsonb.toJson(c)).links(linkToCustomers).build();
         } else {
             return Response.status(Response.Status.FORBIDDEN).build();
         }

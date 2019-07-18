@@ -11,6 +11,7 @@ import de.hsos.kbse.webshop.repositories.CategoryRepository;
 import de.hsos.kbse.webshop.repositories.ProductRepository;
 import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.enterprise.context.RequestScoped;
@@ -26,6 +27,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -66,8 +68,11 @@ public class ProductResource implements Serializable {
     }
     
     @GET
-    @Path("category/{id}")
-    public Response getCategoryProducts(@PathParam("id")Long id){
+    @Path("category")
+    public Response getCategoryProducts(@QueryParam("id")Long id){
+        if(id == null){
+            return Response.ok(jsonb.toJson(categoryRepo.findAll())).build();
+        }
         try {
             return Response.ok(jsonb.toJson(categoryRepo.findById(id).getProducts())).build();
         } catch (NullPointerException e){
@@ -76,8 +81,8 @@ public class ProductResource implements Serializable {
     }
     
     @GET
-    @Path("find/{term}")
-    public Response findProducts(@PathParam("term")String term){
+    @Path("find")
+    public Response findProducts(@QueryParam("term")String term){
         Collection<Product> pResult = new ArrayList();
         String[] words = term.split(" ");
         productRepo.findAll().forEach(p -> {
@@ -91,7 +96,12 @@ public class ProductResource implements Serializable {
                 }
             }
         });
-        return Response.ok(jsonb.toJson(pResult)).build();
+        
+        // View the first result product:
+        URI uriToProduct = uriInfo.getBaseUriBuilder().path("/products/"+pResult.iterator().next().getId()).build();
+        Link linkToProduct = Link.fromUri(uriToProduct).rel("collection").type("application/json").param("method", "GET").build();
+        
+        return Response.ok(jsonb.toJson(pResult)).links(linkToProduct).build();
     }
     
     @POST
@@ -112,13 +122,21 @@ public class ProductResource implements Serializable {
         p.setPrice(price);
         p.setDescription(description);
         System.out.println(jsonb.toJson(p));
-        p.setCategory(categoryRepo.findById(categoryId));
+        Category c = categoryRepo.findById(categoryId);
+        p.setCategory(c);
+        c.addProduct(p);
         productRepo.persist(p);
-        return Response.ok(jsonb.toJson(p)).build();
+        categoryRepo.merge(c);
+        
+        // View the product:
+        URI uriToProduct = uriInfo.getBaseUriBuilder().path("/products/"+p.getId()).build();
+        Link linkToProduct = Link.fromUri(uriToProduct).rel("collection").type("application/json").param("method", "GET").build();
+        
+        return Response.ok(jsonb.toJson(p)).links(linkToProduct).build();
     }
     
     @POST
-    @Path("newCategory")
+    @Path("category/new")
     public Response addCategory(@QueryParam("name")String name, @QueryParam("email")String email, @QueryParam("password")String password){
         if(!userManager.isAdmin(email, password)){
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -126,6 +144,11 @@ public class ProductResource implements Serializable {
         Category c = new Category();
         c.setName(name);
         categoryRepo.persist(c);
-        return Response.ok(jsonb.toJson(c)).build();
+        
+        // View the category:
+        URI uriToCategory = uriInfo.getBaseUriBuilder().path("/products/category/"+c.getId()).build();
+        Link linkToCategory = Link.fromUri(uriToCategory).rel("collection").type("application/json").param("method", "GET").build();
+        
+        return Response.ok(jsonb.toJson(c)).links(linkToCategory).build();
     }
 }

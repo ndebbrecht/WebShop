@@ -46,6 +46,7 @@ public class Customer implements Serializable {
     @JsonbProperty("isAdmin")
     private boolean isAdmin;
     @OneToMany
+    @JsonbTransient
     private Collection<Cart> carts;
 
     public Customer(){

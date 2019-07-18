@@ -15,6 +15,7 @@ import de.hsos.kbse.webshop.repositories.OrderItemRepository;
 import de.hsos.kbse.webshop.repositories.ProductRepository;
 import de.hsos.kbse.webshop.util.UserManager;
 import java.io.Serializable;
+import java.net.URI;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
@@ -32,6 +33,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Link;
+import static org.glassfish.jersey.server.model.Parameter.Source.URI;
 
 /**
  *
@@ -60,7 +63,7 @@ public class CartResource implements Serializable {
     @GET
     @Path("{id}")
     public Response getCart(@PathParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
-        if(!userManager.isYourCart(email, password, id)){
+        if(!userManager.isYourCart(email, password, id) && !userManager.isAdmin(email, password)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         try {
@@ -83,7 +86,13 @@ public class CartResource implements Serializable {
     
     @POST
     @Path("{id}/add")
-    public Response addProduct(@PathParam("id")Long cartId, @QueryParam("productId")Long productId, @QueryParam("amount")int amount, @FormParam("email")String email, @FormParam("password")String password){
+    public Response addProduct(
+            @PathParam("id")Long cartId,
+            @QueryParam("productId")Long productId,
+            @QueryParam("amount")int amount,
+            @QueryParam("email")String email,
+            @QueryParam("password")String password
+    ){
         if(!userManager.isYourCart(email, password, cartId)){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -105,17 +114,19 @@ public class CartResource implements Serializable {
     @POST
     @Path("new")
     public Response newCart(@QueryParam("email")String email, @QueryParam("password")String password){
-        try {
-            Customer c = userManager.getValidCustomer(email, password);
-            Cart cart = new Cart();
-            cart.setCustomer(c);
-            cart.setStatus(1);
-            cartRepo.persist(cart);
-        
-            return Response.ok(jsonb.toJson(cart)).build();
-        } catch (NullPointerException e){
+        Customer c = userManager.getValidCustomer(email, password);
+        if(c == null){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        Cart cart = new Cart();
+        cart.setCustomer(c);
+        cart.setStatus(1);
+        cartRepo.persist(cart);
+        // View the cart:
+        URI uriToCart = uriInfo.getBaseUriBuilder().path("/carts/"+cart.getId()).build();
+        Link linkToCart = Link.fromUri(uriToCart).rel("collection").type("application/json").param("method", "GET").build();
+        
+        return Response.ok(jsonb.toJson(cart)).links(linkToCart).build();
     }
     
     @PUT
@@ -128,7 +139,12 @@ public class CartResource implements Serializable {
             OrderItem oi = orderItemRepo.findById(orderItemId);
             oi.setAmount(newAmount);
             orderItemRepo.merge(oi);
-            return Response.ok(jsonb.toJson(oi)).build();
+            
+            // View the cart:
+            URI uriToCart = uriInfo.getBaseUriBuilder().path("/carts/"+cartId).build();
+            Link linkToCart = Link.fromUri(uriToCart).rel("collection").type("application/json").param("method", "GET").build();
+            
+            return Response.ok(jsonb.toJson(oi)).links(linkToCart).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -148,7 +164,12 @@ public class CartResource implements Serializable {
             }
             cart.getOrderItems().remove(oi);
             cartRepo.merge(cart);
-            return Response.ok(jsonb.toJson(cartRepo.findById(cartId))).build();
+            
+            // View the cart:
+            URI uriToCart = uriInfo.getBaseUriBuilder().path("/carts/"+cart.getId()).build();
+            Link linkToCart = Link.fromUri(uriToCart).rel("collection").type("application/json").param("method", "GET").build();
+            
+            return Response.ok(jsonb.toJson(cartRepo.findById(cartId))).links(linkToCart).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
         }

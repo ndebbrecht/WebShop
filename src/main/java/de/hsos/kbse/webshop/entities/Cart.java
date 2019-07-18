@@ -28,7 +28,7 @@ public class Cart implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne
-    //@JsonbTransient
+    @JsonbTransient
     private Customer customer;
     @OneToMany
     @JsonbProperty("orderItems")

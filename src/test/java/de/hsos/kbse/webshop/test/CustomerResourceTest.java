@@ -41,7 +41,7 @@ public class CustomerResourceTest extends JerseyTest {
         Assert.assertTrue(c.isIsAdmin() == c2.isIsAdmin());
     }*/
     
-    @Test
+    /*@Test
     public void getCustomerTest(){
         Response result = target("customers/my")
                 .queryParam("email", "admin@root.de")
@@ -50,5 +50,5 @@ public class CustomerResourceTest extends JerseyTest {
                 .get();
         //Assert.assertTrue(c.isIsAdmin());
         Assert.assertEquals("Status 200", 200, result.getStatus());
-    }
+    }*/
 }

@@ -9,14 +9,14 @@ import de.hsos.kbse.webshop.entities.Cart;
 import de.hsos.kbse.webshop.entities.Customer;
 import de.hsos.kbse.webshop.repositories.CustomerRepository;
 import java.util.Collection;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import org.jvnet.hk2.annotations.Service;
 
 /**
  *
  * @author niklas_debbrecht
  */
-@Service
+@ApplicationScoped
 public class UserManager {
     @Inject
     private CustomerRepository customerRepo;
@@ -24,7 +24,6 @@ public class UserManager {
     public boolean isAdmin(String email, String password){
         try{
             Customer c = this.getValidCustomer(email, password);
-            System.out.print(c.isIsAdmin());
             return c.isIsAdmin();
         } catch(NullPointerException e){
             return false;
@@ -39,11 +38,20 @@ public class UserManager {
         }
     }
     
-    public boolean isUser(String email, String password  ){
-        return (findCustomer(email).getPassword().equals(password));
+    public boolean isUser(String email, String password){
+        try {
+            // returns true if entered email and password are correct otherwise false
+            return (findCustomer(email).getPassword().equals(password));
+        } catch (NullPointerException e){
+            // catches if user doesnt exists or input is null
+            return false;
+        }
     }
     
     private Customer findCustomer(String email){
+        if(email == null){
+            return null;
+        }
         Collection<Customer> customers = customerRepo.findAll();
         for(Customer c: customers){
             if(c.getEmail().equals(email)){
@@ -53,6 +61,9 @@ public class UserManager {
         return null;
     }
     
+    /*
+    Checks if the chosen cart belongs to the entered credentials
+    */
     public boolean isYourCart(String email, String password, Long cartId){
         Customer c = this.getValidCustomer(email, password);
         if(c != null){
