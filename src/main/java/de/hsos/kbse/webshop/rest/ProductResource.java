@@ -128,8 +128,8 @@ public class ProductResource implements Serializable {
         productRepo.persist(p);
         categoryRepo.merge(c);
         
-        // View the product:
-        URI uriToProduct = uriInfo.getBaseUriBuilder().path("/products/"+p.getId()).build();
+        // View all products:
+        URI uriToProduct = uriInfo.getBaseUriBuilder().path("/products").build();
         Link linkToProduct = Link.fromUri(uriToProduct).rel("collection").type("application/json").param("method", "GET").build();
         
         return Response.ok(jsonb.toJson(p)).links(linkToProduct).build();
@@ -145,8 +145,8 @@ public class ProductResource implements Serializable {
         c.setName(name);
         categoryRepo.persist(c);
         
-        // View the category:
-        URI uriToCategory = uriInfo.getBaseUriBuilder().path("/products/category/"+c.getId()).build();
+        // View all categories:
+        URI uriToCategory = uriInfo.getBaseUriBuilder().path("/products/category").build();
         Link linkToCategory = Link.fromUri(uriToCategory).rel("collection").type("application/json").param("method", "GET").build();
         
         return Response.ok(jsonb.toJson(c)).links(linkToCategory).build();

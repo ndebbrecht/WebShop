@@ -113,8 +113,8 @@ public class CustomerResource implements Serializable {
     @Path("promote")
     public Response promote(@QueryParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
+            Customer c = customerRepo.findById(id);
             try {
-                Customer c = customerRepo.findById(id);
                 c.setIsAdmin(true);
                 customerRepo.merge(c);
             } catch(NullPointerException e){
@@ -135,8 +135,8 @@ public class CustomerResource implements Serializable {
     @Path("demote")
     public Response demote(@QueryParam("id")Long id, @QueryParam("email")String email, @QueryParam("password")String password){
         if(userManager.isAdmin(email, password)){
+            Customer c = customerRepo.findById(id);
             try {
-                Customer c = customerRepo.findById(id);
                 c.setIsAdmin(false);
                 customerRepo.merge(c);
             } catch(NullPointerException e){

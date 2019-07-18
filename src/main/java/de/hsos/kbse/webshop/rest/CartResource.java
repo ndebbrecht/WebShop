@@ -105,7 +105,12 @@ public class CartResource implements Serializable {
             Cart c = cartRepo.findById(cartId);
             c.addOrderItem(oi);
             cartRepo.merge(c);
-            return Response.ok(jsonb.toJson(c)).build();
+            
+            // View the cart:
+            URI uriToCart = uriInfo.getBaseUriBuilder().path("/carts/"+c.getId()).build();
+            Link linkToCart = Link.fromUri(uriToCart).rel("collection").type("application/json").param("method", "GET").build();
+            
+            return Response.ok(jsonb.toJson(c)).links(linkToCart).build();
         } catch (NullPointerException e){
             return Response.status(Response.Status.NOT_FOUND).build();
         }

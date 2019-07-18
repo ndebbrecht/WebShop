@@ -27,6 +27,6 @@ public class ProductResourceTest extends JerseyTest {
     /*@Test
     public void allProducts(){
         Response response = target("products").request().get();
-        Assert.assertEquals("Status 200", 200, response.getStatus());
+        Assert.assertEquals("Status 200:", 200, response.getStatus());
     }*/
 }
